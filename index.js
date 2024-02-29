@@ -1,10 +1,14 @@
 let express = require('express')
 let mongoose = require('mongoose')
+let cors = require('cors')
 let tweet = require('./model/tweets')
 
 
 //create express app
 let app = express()
+
+//configure cors
+app.use(cors())
 
 //configure express app to encode/decode json
 app.use(express.json())
@@ -82,25 +86,7 @@ app.put("/1.0/tweet/update/:myid",(request, response)=>{
     //extract request body from incoming request
     let rBody = request.body
     console.log(rBody)
-    //extract request body from incoming request
-     //create blank instance of tweet model
-     let newTweet = new tweet({
-        username:rBody.username,
-        post:rBody.post,
-        likes:rBody.likes,
-        dislikes:rBody.dislikes,
-        image:rBody.image,
-        youtube:rBody.youtube
-    })
-    console.log(newTweet)
-    tweet.updateOne({_id:id}, {$set:{
-                                            username:rBody.username,
-                                            post:rBody.post,
-                                            likes:rBody.likes,
-                                            dislikes:rBody.dislikes,
-                                            image:rBody.image,
-                                            youtube:rBody.youtube
-                                }})
+    tweet.findByIdAndUpdate(id, rBody, {new:true})
             .then((data)=>{
                 console.log("query success for /1.0/tweet/update/:id")
                 response.json(data)
@@ -110,8 +96,42 @@ app.put("/1.0/tweet/update/:myid",(request, response)=>{
                 response.json(error)
             })
 
+})
 
-    
+//delete tweet by id
+app.delete("/1.0/tweet/delete/:id", (request, response)=>{
+    //extract id of the tweet to delete
+    console.log("DELETE /1.0/tweet/delete/:id")
+    let id = request.params.id
+    console.log(id)
+    tweet.findByIdAndDelete(id)
+        .then(data=>{
+            console.log("query success for /1.0/tweet/delete/:id")
+            response.status(200).json(data)
+        })
+        .catch(error=>{
+            console.log("query failure for /1.0/tweet/delete/:id")
+            response.status(500).json(error)
+        })
+})
+
+
+//find tweet by id
+app.get("/1.0/tweet/:id",(request, response)=>{
+    console.log("GET /1.0/tweet/:id")
+    //extract id
+    let id = request.params.id
+    console.log(id)
+    tweet.findById(id)
+        .then(data=>{
+            console.log("query success for /1.0/tweet/:id")
+            response.status(200).json(data)
+        })
+        .catch(error=>{
+            console.log("query failure for /1.0/tweet/:id")
+            response.status(500).json(error)
+        })
+
 })
 
 
